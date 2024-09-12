@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a56f88623068722f5b26fd0e9abb8a7a",
+    "content-hash": "a0ac0f2be5e320e8f9633694ada0d9e8",
     "packages": [
         {
             "name": "brick/math",
@@ -576,6 +576,64 @@
                 }
             ],
             "time": "2023-10-12T05:21:21+00:00"
+        },
+        {
+            "name": "glhd/bits",
+            "version": "0.5.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/glhd/bits.git",
+                "reference": "1dae45814448623c86dba34d3325d08cdc2afc2f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/glhd/bits/zipball/1dae45814448623c86dba34d3325d08cdc2afc2f",
+                "reference": "1dae45814448623c86dba34d3325d08cdc2afc2f",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "illuminate/contracts": "^9|^10|^11|12.x-dev|dev-master",
+                "illuminate/support": "^9|^10|^11|12.x-dev|dev-master",
+                "nesbot/carbon": "^2.62.1|^3.0",
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.5",
+                "orchestra/testbench": "^7.10|^8|^9|9.x-dev|10.x-dev|dev-master",
+                "spatie/laravel-ray": "^1.32"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Glhd\\Bits\\Support\\BitsServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Glhd\\Bits\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Chris Morrell",
+                    "homepage": "http://www.cmorrell.com"
+                }
+            ],
+            "keywords": [
+                "laravel"
+            ],
+            "support": {
+                "issues": "https://github.com/glhd/bits/issues",
+                "source": "https://github.com/glhd/bits/tree/0.5.0"
+            },
+            "time": "2024-07-10T19:39:07+00:00"
         },
         {
             "name": "graham-campbell/result-type",
@@ -9624,7 +9682,8 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": "^8.0|^8.1|^8.2|^8.3"
+        "php": "^8.0|^8.1|^8.2|^8.3",
+        "ext-pdo": "*"
     },
     "platform-dev": [],
     "plugin-api-version": "2.6.0"
