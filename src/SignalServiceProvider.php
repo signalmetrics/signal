@@ -4,6 +4,7 @@ namespace Signalmetrics\Signal;
 
 use Illuminate\Support\ServiceProvider;
 use Signalmetrics\Signal\Commands\InstallCommand;
+use Signalmetrics\Signal\Mechanisms\FrontendAssets;
 
 class SignalServiceProvider extends ServiceProvider {
 
@@ -17,6 +18,15 @@ class SignalServiceProvider extends ServiceProvider {
          */
         config(['database.connections.signal' => config('signal.signal_db')]);
 
+        // Publish assets for the Signal package
+        $this->publishes(
+            [
+                __DIR__.'/../../../dist' => public_path('vendor/signal'),
+            ],
+            'signal:assets'
+        );
+
+         app(FrontendAssets::class)->boot();
 
         /*
          * Optional methods to load your package assets
@@ -50,7 +60,9 @@ class SignalServiceProvider extends ServiceProvider {
             $this->commands([
                 InstallCommand::class
             ]);
+
         }
+
     }
 
     /**
@@ -58,6 +70,7 @@ class SignalServiceProvider extends ServiceProvider {
      */
     public function register()
     {
+
         // Automatically apply the package configuration
         $this->mergeConfigFrom(__DIR__ . '/../config/signal.php', 'signal');
 
@@ -65,6 +78,11 @@ class SignalServiceProvider extends ServiceProvider {
         $this->app->singleton('signal', function () {
             return new Signal;
         });
+
+        app(FrontendAssets::class)->register();
+
+        // Register the SignalFrontendAssets class
+//        $this->app->singleton(FrontendAssets::class);
     }
 
 }

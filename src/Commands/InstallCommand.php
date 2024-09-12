@@ -122,7 +122,11 @@ class InstallCommand extends Command {
         // Connect to the SQLite database and execute the PRAGMA command
         $pdo = new PDO('sqlite:' . $db_file);
         $pdo->exec('PRAGMA journal_mode = WAL;');
-        $this->comment('WAL mode enabled for Signal.');
+
+        // Disable synchronous mode
+        $pdo->exec('PRAGMA synchronous = NORMAL;');
+
+        $this->comment('WAL mode enabled and Synchronous mode disabled for Signal.');
 
         // reloads the .env file
 //            $this->line('Reloading .env file...');
