@@ -1,1 +1,5 @@
-<h1>Welcome to Signal</h1>
+<x-signalmetrics.layouts.app>
+    <header class="h-12 bg-gray-900">
+        header contents
+    </header>
+</x-signalmetrics.layouts.app>

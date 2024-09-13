@@ -2,6 +2,7 @@
 
 namespace Signalmetrics\Signal;
 
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 
 class SignalServiceProvider extends ServiceProvider
@@ -11,6 +12,7 @@ class SignalServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+
         /*
          * Optional methods to load your package assets
          */
@@ -42,6 +44,8 @@ class SignalServiceProvider extends ServiceProvider
             // Registering package commands.
             // $this->commands([]);
         }
+        
+        Blade::anonymousComponentPath(base_path('vendor/signalmetrics/signal/resources/views/components'));
     }
 
     /**
