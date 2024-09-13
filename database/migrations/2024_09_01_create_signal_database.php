@@ -24,8 +24,8 @@ return new class extends Migration {
             $table->snowflakeId();
 
             $table->string('type')->index();
-            $table->json('data');
-            $table->json('metadata');
+            $table->json('data')->nullable();
+            $table->json('metadata')->nullable();
 
             $table->timestamps();
         });

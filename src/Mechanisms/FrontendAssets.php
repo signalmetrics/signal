@@ -30,7 +30,7 @@ class FrontendAssets {
         Route::get('/signal/signal.min.js.map', [static::class, 'maps']);
 
         // Register Blade directives for signal scripts
-        Blade::directive('signalScripts', [static::class, 'signalScripts']);
+        Blade::directive('signal', [static::class, 'signalScripts']);
 
     }
 
@@ -91,13 +91,25 @@ class FrontendAssets {
         $url = rtrim($url, '/');
         $url = (string) str($url)->when(!str($url)->isUrl(), fn($url) => $url->start('/'));
 
+        // Cache-busting in development by adding a timestamp to the script URL
+        if (config('app.debug')) {
+            $timestamp = time(); // Alternatively, you can use file modification time with filemtime()
+            $url .= "?v={$timestamp}";
+        }
+
+        // Dynamically generate data attributes from options
+        $attributes = '';
+        foreach ($options as $key => $value) {
+            $attributes .= ' data-' . htmlspecialchars($key, ENT_QUOTES, 'UTF-8') . '="' . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . '"';
+        }
+
         $token = app()->has('session.store') ? csrf_token() : '';
 
         $nonce = isset($options['nonce']) ? "nonce=\"{$options['nonce']}\"" : '';
         $extraAttributes = Utils::stringifyHtmlAttributes(app(static::class)->scriptTagAttributes);
 
         return <<<HTML
-        <script src="{$url}" {$nonce} data-csrf="{$token}" {$extraAttributes}></script>
+        <script src="{$url}" defer {$nonce} data-csrf="{$token}" {$attributes} {$extraAttributes}></script>
         HTML;
     }
 
