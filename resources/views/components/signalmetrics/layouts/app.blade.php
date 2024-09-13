@@ -11,8 +11,8 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased">
-        
-        <main>
+        <x-signalmetrics.header />
+        <main class="px-5">
             {{ $slot }}
         </main>
     </body>
