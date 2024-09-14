@@ -3,6 +3,8 @@
 namespace Signalmetrics\Signal\Controllers;
 
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\DB;
+use Signalmetrics\Signal\Models\IPAddress;
 use Signalmetrics\Signal\Models\SignalEvent;
 
 class IngestionController extends Controller {
@@ -29,6 +31,8 @@ class IngestionController extends Controller {
         $metadata['languages'] = request()->getLanguages();
         $metadata['user'] = $this->getUserHash();
         $metadata['referer_2'] = request()->headers->get('referer'); // null if made directly.
+
+        if ($this->detectSpam($metadata['ip'])) return;
 
         SignalEvent::insert([
             [
@@ -67,6 +71,19 @@ class IngestionController extends Controller {
             }
         }
         return request()->ip(); // it will return the server IP if the client IP is not found using this method.
+    }
+
+    /**
+     * Determines if an IP address has more than the number of allowed daily visits.
+     */
+    public function detectSpam($ip): bool
+    {
+        $ip = IPAddress::updateOrCreate([
+            ['address' => $ip],
+            ['visits' => DB::raw('visits + 1')]
+        ]);
+
+        return ($ip->visits > config('signal.spam_threshold'));
     }
 
 }

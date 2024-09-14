@@ -139,10 +139,7 @@ class InstallCommand extends Command {
      */
     protected function migrate(): void
     {
-        $this->comment('Doing an initial migration...');
-        $packageMigrationPath = 'vendor/signalmetrics/signal/database/migrations';
-
-        passthru('php artisan migrate --database=signal --path=' . $packageMigrationPath);
+        (new MigrateSignalCommand())->handle();
 
     }
 

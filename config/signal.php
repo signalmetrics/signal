@@ -11,7 +11,20 @@ return [
         'url' => '',
     ],
 
+
     'tables' => [
-        'events' => 'signal_events'
-    ]
+        'events' => 'events',
+        'ip' => 'ip_addresses',
+        'blacklist' => 'blacklist'
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Spam Threshold
+    |--------------------------------------------------------------------------
+    |
+    | If there are more than this many visits in a day, it's considered spam.
+    |
+    */
+    'spam_threshold' => env('SIGNAL_SPAM_THRESHOLD', 1000)
 ];

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class SignalEvent extends Model {
 
     protected $connection = 'signal';
-    protected $table = 'signal_events';
+    protected $table = 'events';
 
     protected $guarded = [];
 

@@ -10,7 +10,7 @@ return new class extends Migration {
 
     protected function tableName(): string
     {
-        return config('signal.tables.events', 'signal_events');
+        return config('signal.tables.ip', 'ip_addresses');
     }
 
     public function up()
@@ -21,12 +21,9 @@ return new class extends Migration {
         }
 
         Schema::create($this->tableName(), function (Blueprint $table) {
-            $table->snowflakeId();
-
-            $table->string('type')->index();
-            $table->json('data')->nullable();
-            $table->json('metadata')->nullable();
-
+            $table->id();
+            $table->string('ip')->index();
+            $table->integer('visits')->default(0);
             $table->timestamps();
         });
     }
