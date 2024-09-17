@@ -99,6 +99,16 @@ class FrontendAssets {
 
         // Dynamically generate data attributes from options
         $attributes = '';
+
+        /**
+         * By default, if we have a logged in user we
+         * track them using their ID.
+         */
+        if (config('signal.track_logged_in_users') && auth()->user()) {
+            $id = auth()->user()->id;
+            $attributes .= " data-custom-user-id={$id}";
+        }
+
         foreach ($options as $key => $value) {
             $attributes .= ' data-' . htmlspecialchars($key, ENT_QUOTES, 'UTF-8') . '="' . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . '"';
         }

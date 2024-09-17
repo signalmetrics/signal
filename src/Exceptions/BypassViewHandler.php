@@ -1,6 +1,6 @@
 <?php
 
-namespace Signalmetrics\Exceptions;
+namespace Signalmetrics\Signal\Exceptions;
 
 trait BypassViewHandler
 {

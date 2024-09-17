@@ -35,34 +35,22 @@ class InstallCommand extends Command {
 
     protected function intro()
     {
-        $this->slowInfo('Thanks for trying out');
+
         $this->slowInfo('↓↓↓↓↓');
         $this->slowInfo('↓↓↓');
         $this->slowInfo('↓');
         $this->slowInfo('');
-        $this->slowInfo(' Signal', 'warn');
-        $this->slowInfo('');
 
-        $this->slowInfo('     ╬═╬     ');
-        $this->slowInfo('     ╬═╬     ');
-        $this->slowInfo('     ╬═╬  ☻/ ');
-        $this->slowInfo('     ╬═╬ /▌  ');
-        $this->slowInfo('    ╬═╬ / \\');
-        $this->slowInfo('');
-        $this->slowInfo('The free, self hosted');
-        $this->slowInfo('analytics platform');
+        $this->slowInfo('Thanks for using Signal!');
+        $this->slowInfo('---');
+        $this->slowInfo('The free');
+        $this->slowInfo('analytics tracker');
         $this->slowInfo('for Laravel apps.');
-        $this->slowInfo('');
-        $this->slowInfo('');
 
-        sleep(0.5);
         $this->slowInfo('');
-        $this->slowInfo('Installation starts in...');
         $this->slowInfo('');
-        $this->slowInfo('3');
-        $this->slowInfo('2');
-        $this->slowInfo('1');
-        sleep(1);
+        sleep(2);
+
     }
 
     public function slowInfo($text, $type = 'info')
@@ -70,6 +58,7 @@ class InstallCommand extends Command {
         // center the text.
         $length = str($text)->length();
         $padding = round((32 - $length) / 2, 0);
+
 
         usleep(220000);
 
@@ -111,11 +100,11 @@ class InstallCommand extends Command {
         $db_file = config('signal.signal_db.database');
 
         if (file_exists($db_file)) {
-            $this->comment("Database already exists. Skipping database setup.");
+            $this->comment("Signal database already exists.");
             return;
         }
 
-        $this->comment('Making database...');
+        $this->comment('Making a SQLite database to store analytics data...');
 
         File::put($db_file, '');
 
@@ -135,12 +124,11 @@ class InstallCommand extends Command {
     }
 
     /**
-     * This runs migrations specifically for
+     * This runs migrations for Signal.
      */
     protected function migrate(): void
     {
-        (new MigrateSignalCommand())->handle();
-
+        $this->call('signal:migrate');
     }
 
 }

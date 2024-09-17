@@ -15,8 +15,42 @@ return [
     'tables' => [
         'events' => 'events',
         'ip' => 'ip_addresses',
-        'blacklist' => 'blacklist'
+        'blacklist' => 'blacklist',
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Privacy Mode
+    |--------------------------------------------------------------------------
+    |
+    | By default, Signal honors the privacy intrinsically due all free people
+    | and the legal privacy requirements dictated by GDPR.
+    |
+    */
+    'privacy_mode' => env('SIGNAL_PRIVACY_MODE', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Throttle
+    |--------------------------------------------------------------------------
+    |
+    | Laravel provides rate-limiting, which defaults to 60 requests per minute.
+    | In some cases, your users may be likely to exceed that, especially
+    | if you are sending a lot of custom events.
+    |
+    */
+    'max_attempts_per_minute' => env('SIGNAL_MAX_ATTEMPTS_PER_MINUTE', 60),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Track Logged In Users
+    |--------------------------------------------------------------------------
+    |
+    | By default, Signal honors the privacy intrinsically due all free people
+    | and the legal privacy requirements dictated by GDPR.
+    |
+    */
+    'track_logged_in_users' => env('SIGNAL_TRACK_LOGGED_IN_USERS', true),
 
     /*
     |--------------------------------------------------------------------------

@@ -2,16 +2,40 @@
 
 namespace Signalmetrics\Signal\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\DB;
-use Signalmetrics\Signal\Models\IPAddress;
+use Signalmetrics\Signal\Actions\Ingestion\CreateHashes;
+use Signalmetrics\Signal\Actions\Ingestion\DetectCountry;
+use Signalmetrics\Signal\Actions\Ingestion\DetectCrawler;
+use Signalmetrics\Signal\Actions\Ingestion\DetectSpam;
+use Signalmetrics\Signal\Actions\Ingestion\DetectUserAgent;
+use Signalmetrics\Signal\Actions\Ingestion\GetIP;
+use Signalmetrics\Signal\Actions\Ingestion\PersistEvent;
+use Signalmetrics\Signal\Actions\Ingestion\RemovePersonalDetails;
+use Signalmetrics\Signal\Actions\Ingestion\StoreDuration;
+use Signalmetrics\Signal\Drawer\Pipeline;
 use Signalmetrics\Signal\Models\SignalEvent;
 
 class IngestionController extends Controller {
 
-    public function store()
+    public function store(): SignalEvent
     {
+        $event = $this->initializeEvent();
 
+        return match ($event->type) {
+            'page_view' => $this->processPageView($event),
+            'page_unload' => $this->processPageUnload($event),
+            default => $this->processEvent($event)
+        };
+    }
+
+    /**
+     * Regardless of what kind of event we get, we always initialize the
+     * same metadata for consistency. This metadata mostly comes from
+     * the frontend, but some is determined by the server.
+     */
+    public function initializeEvent(): SignalEvent
+    {
         /**
          * POST comes from beacon, and is stored as json data.
          * GET comes from pageview, and is stored differently.
@@ -26,64 +50,107 @@ class IngestionController extends Controller {
             $data = request()->get('data');
         }
 
+        /**
+         * The UTM codes get automatically parsed, since this is such a significant
+         * convention for marketing sites.
+         */
+        $utm = request()->only(['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content']);
 
-        $metadata['ip'] = $this->getIp();
-        $metadata['languages'] = request()->getLanguages();
-        $metadata['user'] = $this->getUserHash();
-        $metadata['referer_2'] = request()->headers->get('referer'); // null if made directly.
+        /**
+         * We pull out the epochal timestamp to set the created_at time to the exact
+         * moment the event was fired in the frontend. This is useful since we
+         * may be queuing events for quite a long time.
+         */
+        $timestampMilliseconds = substr($metadata['dispatch_moment'], 0, 13);
 
-        if ($this->detectSpam($metadata['ip'])) return;
+        $parsedUrl = parse_url($metadata['url']);
 
-        SignalEvent::insert([
-            [
-                'type' => $type ?? 'broken',
-                'data' => json_encode($data),
-                'metadata' => json_encode($metadata),
-                'created_at' => now(),
-                'updated_at' => now()
-            ]
+        return new SignalEvent([
+            'visit_signature' => $metadata['visit_signature'],
+            'type' => $type,
+            'custom_user_id' => $metadata['custom_user_id'] ?? null,
+            'title' => $metadata['title'],
+            'referrer' => $metadata['referrer'],
+            'host_name' => $parsedUrl['host'],
+            'path_name' => $parsedUrl['path'],
+//            'viewport' => new XYDimension($metadata['viewport']['x'], $metadata['viewport']['y']),
+//            'screen_resolution' => new XYDimension($metadata['screen_resolution']['x'], $metadata['screen_resolution']['y']),
+//            'connection_type' => $metadata['connection_type'],
+            'user_agent' => request()->headers->get('user_agent'),
+            'language' => $metadata['language'] ?? null,
+            'page_load_time_ms' => $metadata['page_load_time_ms'],
+            'data' => $data,
+            'utm_source' => $utm['utm_source'] ?? null,
+            'utm_medium' => $utm['utm_medium'] ?? null,
+            'utm_campaign' => $utm['utm_campaign'] ?? null,
+            'utm_term' => $utm['utm_term'] ?? null,
+            'utm_content' => $utm['utm_content'] ?? null,
+
+            'created_at' => Carbon::createFromTimestampMs($timestampMilliseconds)
         ]);
-
-    }
-
-    private function getUserHash(): string
-    {
-        $ip = $this->getIp();
-        $userAgent = request()->headers->get('user_agent');
-        $hostname = request()->getHost();
-
-        $uniqueData = $ip . $userAgent . $hostname;
-
-        return hash('xxh128', $uniqueData);
-
-    }
-
-    private function getIp()
-    {
-        foreach (array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR') as $key) {
-            if (array_key_exists($key, $_SERVER) === true) {
-                foreach (explode(',', $_SERVER[$key]) as $ip) {
-                    $ip = trim($ip); // just to be safe
-                    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false) {
-                        return $ip;
-                    }
-                }
-            }
-        }
-        return request()->ip(); // it will return the server IP if the client IP is not found using this method.
     }
 
     /**
-     * Determines if an IP address has more than the number of allowed daily visits.
+     * Process page_view events.
      */
-    public function detectSpam($ip): bool
+    protected function processPageView(SignalEvent $event): SignalEvent
     {
-        $ip = IPAddress::updateOrCreate([
-            ['address' => $ip],
-            ['visits' => DB::raw('visits + 1')]
-        ]);
+        return Pipeline::send($event)
+            ->through([
+                GetIP::class,
+                // DetectCrawler::class,
+                DetectSpam::class,
+                DetectUserAgent::class,
+                CreateHashes::class,
 
-        return ($ip->visits > config('signal.spam_threshold'));
+                DetectCountry::class,
+
+                // Get unique
+
+                // Clear IP for privacy folks.
+                RemovePersonalDetails::class,
+
+                PersistEvent::class
+            ])
+            ->thenReturn();
     }
+
+    /**
+     * When someone closes out of a tab, we store the duration of
+     * their visit on the original pageview.
+     *
+     * I think the only thing we need to do for this is store duration.
+     */
+    protected function processPageUnload(SignalEvent $event): SignalEvent
+    {
+        return Pipeline::send($event)
+            ->through([
+                StoreDuration::class,
+            ])
+            ->thenReturn();
+    }
+
+    protected function processEvent(SignalEvent $event): SignalEvent
+    {
+        return Pipeline::send($event)
+            ->through([
+                GetIP::class,
+                DetectCrawler::class,
+                DetectSpam::class,
+                CreateHashes::class,
+
+                // Get Country
+                // Get mobile vs desktop
+                // Get unique
+
+                // Clear IP when in Privacy Mode
+                RemovePersonalDetails::class,
+
+                // Save the event
+                PersistEvent::class
+            ])
+            ->thenReturn();
+    }
+
 
 }

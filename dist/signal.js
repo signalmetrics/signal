@@ -5,14 +5,19 @@ const signal = (() => {
     const defaultEndpoint = '/analytics/event';
     const endpoint = currentScript ? currentScript.getAttribute('data-endpoint') || defaultEndpoint : defaultEndpoint;
 
+    // Global variable to hold visit_signature
+    let visit_signature;
+
     // Function to collect metadata
     function metadata() {
-        const load_time = window.performance.timing.domInteractive -window.performance.timing.navigationStart;
+        const load_time = window.performance.timing.domInteractive - window.performance.timing.navigationStart;
         return {
+            dispatch_moment: Date.now(),
+            visit_signature: visit_signature,
+            custom_user_id:  currentScript.getAttribute('data-custom-user-id'),
             referrer: document.referrer,
             url: window.location.href,
             title: document.title,
-            // timing: window.performance.timing,
             screen_resolution: {
                 x: window.screen.width,
                 y: window.screen.height
@@ -24,9 +29,20 @@ const signal = (() => {
             language: navigator.language,
             timezone_offset_minutes: new Date().getTimezoneOffset(),
             page_load_time_ms: load_time,
-            operating_system: navigator.platform,
-            connection_type: navigator.connection && navigator.connection.effectiveType ? navigator.connection.effectiveType : "unknown"
+            connection_type: navigator.connection && navigator.connection.effectiveType ? navigator.connection.effectiveType : "unknown",
         };
+    }
+
+    // Function to generate visit_signature
+    function generateVisitSignature() {
+        // Use the standard Unix epoch (since 1970)
+        const now = Date.now(); // Current time in seconds since 1970
+
+        // Generate a random salt (for example, 5-digit random number)
+        const randomSalt = Math.floor(Math.random() * 90000) + 10000;
+
+        // Combine the epoch time and random salt
+        return `${now}${randomSalt}`;
     }
 
     // Function to encode query parameters
@@ -67,10 +83,14 @@ const signal = (() => {
     // Public API
     return {
         trackPageview: function () {
+            // Generate visit_signature when the pageview is tracked
+            visit_signature = generateVisitSignature();
+
             const params = {
-                type: 'pageview',
+                type: 'page_view',
                 metadata: metadata()
             };
+
             // Use the image request to send the data
             sendImageTracking(params);
         },
@@ -78,7 +98,7 @@ const signal = (() => {
             const params = {
                 type: eventName,
                 data: eventData,
-                metadata: metadata()
+                metadata: metadata() // Attach the metadata, including visit_signature
             };
 
             // Use the Beacon API to send the data
@@ -93,3 +113,7 @@ const signal = (() => {
 
 // Track an event
 // signal.fire('button_click', { button_id: 'signup' });
+
+window.addEventListener('beforeunload', function (e) {
+    signal.fire('page_unload');
+});
