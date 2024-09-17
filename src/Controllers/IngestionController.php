@@ -98,14 +98,12 @@ class IngestionController extends Controller {
         return Pipeline::send($event)
             ->through([
                 GetIP::class,
-                // DetectCrawler::class,
                 DetectSpam::class,
                 DetectUserAgent::class,
                 CreateHashes::class,
 
                 DetectCountry::class,
 
-                // Get unique
 
                 // Clear IP for privacy folks.
                 RemovePersonalDetails::class,

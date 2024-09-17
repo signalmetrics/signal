@@ -22,7 +22,7 @@ class DetectSpam implements PipeInterface {
         $ip->increment('visits');
 
         if ($ip->visits > config('signal.spam_threshold')) {
-            $this->handleSpam();
+            $this->handleSpam($ip, $event);
         };
 
         return $next($event);
@@ -31,10 +31,17 @@ class DetectSpam implements PipeInterface {
     /**
      * @return mixed
      * @throws SpamDetectedException
-     * @TODO we need to catch the spam and remove other visits which correspond to this user.
+     * Deletes the visits we had from that user.
      */
-    protected function handleSpam()
+    protected function handleSpam(IPAddress $IPAddress, SignalEvent $event)
     {
+        // Delete old events which came from the spamming user.
+        SignalEvent::where('user_hash', $event->user_hash)->delete();
+
+        // Blacklist for a week
+        $IPAddress->update(['blacklist_at' => now(), 'blacklist_expires_at' => now()->addWeek()]);
+
+        // Throw exception to stop executing this request.
         throw new SpamDetectedException();
     }
 

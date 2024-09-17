@@ -22,8 +22,10 @@ return new class extends Migration {
 
         Schema::create($this->tableName(), function (Blueprint $table) {
             $table->id();
-            $table->string('ip')->index();
+            $table->string('ip')->index()->unique();
             $table->integer('visits')->default(0);
+            $table->dateTime('blacklist_at')->nullable();
+            $table->dateTime('blacklist_expires_at')->nullable();
             $table->timestamps();
         });
     }
