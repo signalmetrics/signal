@@ -8,7 +8,7 @@ use PDO;
 
 class InstallCommand extends Command {
 
-    public $signature = 'signal:install';
+    public $signature = 'signal:install {--fast : Skip the intro}';
 
     public $description = 'Install Signal';
 
@@ -16,7 +16,9 @@ class InstallCommand extends Command {
     public function handle(): int
     {
 
-        $this->intro();
+        if (!$this->option('fast')) {
+            $this->intro();
+        }
 
         $this->publishVendorFiles();
 
@@ -89,15 +91,25 @@ class InstallCommand extends Command {
         $ignore_file = base_path('.gitignore');
         file_put_contents(
             $ignore_file,
-            PHP_EOL . '/database/signal.sqlite',
+            PHP_EOL . '/database/signal/signal.sqlite',
             FILE_APPEND
         );
     }
 
     protected function setupDatabase(): void
     {
-
         $db_file = config('signal.signal_db.database');
+
+        // Get the directory path (without the filename)
+        $db_directory = dirname($db_file);
+
+        // Check if the directory exists
+        if (!File::exists($db_directory)) {
+            $this->comment('Creating database/signal directory...');
+
+            // Create the directory with appropriate permissions
+            File::makeDirectory($db_directory, 0755, true);
+        }
 
         if (file_exists($db_file)) {
             $this->comment("Signal database already exists.");
@@ -106,6 +118,7 @@ class InstallCommand extends Command {
 
         $this->comment('Making a SQLite database to store analytics data...');
 
+        // Create the SQLite database file
         File::put($db_file, '');
 
         // Connect to the SQLite database and execute the PRAGMA command
@@ -116,11 +129,6 @@ class InstallCommand extends Command {
         $pdo->exec('PRAGMA synchronous = NORMAL;');
 
         $this->comment('WAL mode enabled and Synchronous mode disabled for Signal.');
-
-        // reloads the .env file
-//            $this->line('Reloading .env file...');
-//            $this->call('config:cache');
-//            $this->call('config:clear');
     }
 
     /**

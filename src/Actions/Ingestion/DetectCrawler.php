@@ -6,16 +6,17 @@ use Jaybizzle\CrawlerDetect\CrawlerDetect;
 use Signalmetrics\Signal\Drawer\PipeInterface;
 use Signalmetrics\Signal\Exceptions\SpamDetectedException;
 use Signalmetrics\Signal\Models\SignalEvent;
+use Signalmetrics\Signal\Models\SignalToday;
 
 class DetectCrawler implements PipeInterface {
 
     /**
-     * @param SignalEvent $event
+     * @param SignalToday $event
      * @param $next
      * @return mixed
      * @throws SpamDetectedException
      */
-    public function handle(SignalEvent $event, $next)
+    public function handle(SignalToday $event, $next)
     {
         $CrawlerDetect = new CrawlerDetect;
 

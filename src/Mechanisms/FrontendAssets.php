@@ -67,7 +67,13 @@ class FrontendAssets {
         app(static::class)->hasRenderedScripts = true;
 
         $debug = config('app.debug');
+
+        if($debug && ! config('signal.track_in_debug_mode')) {
+            return "<!-- Signal is disabled. --> ";
+        }
+
         $scripts = static::js($options);
+
 
         $html = $debug ? ['<!-- Signal Scripts -->'] : [];
         $html[] = $scripts;

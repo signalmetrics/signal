@@ -3,12 +3,14 @@
 namespace Signalmetrics\Signal;
 
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Signalmetrics\Signal\Commands\InstallCommand;
 use Signalmetrics\Signal\Commands\MigrateSignalCommand;
+use Signalmetrics\Signal\Commands\MoveDataToEventsCommand;
 use Signalmetrics\Signal\Mechanisms\FrontendAssets;
 use Signalmetrics\Signal\Middleware\SignalThrottle;
 
@@ -73,8 +75,17 @@ class SignalServiceProvider extends ServiceProvider {
             // Registering package commands.
             $this->commands([
                 InstallCommand::class,
-                MigrateSignalCommand::class
+                MigrateSignalCommand::class,
+                MoveDataToEventsCommand::class
             ]);
+
+            // Hook into the scheduler and schedule the command to run at the desired interval
+            $this->callAfterResolving(Schedule::class, function (Schedule $schedule) {
+
+                $frequency = config('signal.data_movement_frequency', 'everyThirtyMinutes');
+
+                $schedule->command('signal:move-data-to-events')->$frequency();
+            });
 
         }
 

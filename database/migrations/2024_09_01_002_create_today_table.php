@@ -10,7 +10,7 @@ return new class extends Migration {
 
     protected function tableName(): string
     {
-        return config('signal.tables.events', 'events');
+        return config('signal.tables.today', 'today');
     }
 
     public function up()

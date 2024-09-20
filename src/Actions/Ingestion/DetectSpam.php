@@ -6,16 +6,17 @@ use Signalmetrics\Signal\Drawer\PipeInterface;
 use Signalmetrics\Signal\Exceptions\SpamDetectedException;
 use Signalmetrics\Signal\Models\IPAddress;
 use Signalmetrics\Signal\Models\SignalEvent;
+use Signalmetrics\Signal\Models\SignalToday;
 
 class DetectSpam implements PipeInterface {
 
     /**
-     * @param SignalEvent $event
+     * @param SignalToday $event
      * @param $next
      * @return mixed
      * @throws SpamDetectedException
      */
-    public function handle(SignalEvent $event, $next)
+    public function handle(SignalToday $event, $next)
     {
         $ip = IPAddress::updateOrCreate(['ip' => $event->ip]);
 
@@ -33,10 +34,10 @@ class DetectSpam implements PipeInterface {
      * @throws SpamDetectedException
      * Deletes the visits we had from that user.
      */
-    protected function handleSpam(IPAddress $IPAddress, SignalEvent $event)
+    protected function handleSpam(IPAddress $IPAddress, SignalToday $event)
     {
         // Delete old events which came from the spamming user.
-        SignalEvent::where('user_hash', $event->user_hash)->delete();
+        SignalToday::where('user_hash', $event->user_hash)->delete();
 
         // Blacklist for a week
         $IPAddress->update(['blacklist_at' => now(), 'blacklist_expires_at' => now()->addWeek()]);

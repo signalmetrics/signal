@@ -18,18 +18,18 @@ const signal = (() => {
             referrer: document.referrer,
             url: window.location.href,
             title: document.title,
-            screen_resolution: {
-                x: window.screen.width,
-                y: window.screen.height
-            },
-            viewport: {
-                x: window.innerWidth,
-                y: window.innerHeight
-            },
+            // screen_resolution: {
+            //     x: window.screen.width,
+            //     y: window.screen.height
+            // },
+            // viewport: {
+            //     x: window.innerWidth,
+            //     y: window.innerHeight
+            // },
             language: navigator.language,
             timezone_offset_minutes: new Date().getTimezoneOffset(),
             page_load_time_ms: load_time,
-            connection_type: navigator.connection && navigator.connection.effectiveType ? navigator.connection.effectiveType : "unknown",
+            // connection_type: navigator.connection && navigator.connection.effectiveType ? navigator.connection.effectiveType : "unknown",
         };
     }
 

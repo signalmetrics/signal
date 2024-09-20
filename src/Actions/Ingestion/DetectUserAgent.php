@@ -7,16 +7,17 @@ use Signalmetrics\Signal\Drawer\PipeInterface;
 use Signalmetrics\Signal\DTO\DeviceType;
 use Signalmetrics\Signal\Exceptions\SpamDetectedException;
 use Signalmetrics\Signal\Models\SignalEvent;
+use Signalmetrics\Signal\Models\SignalToday;
 
 class DetectUserAgent implements PipeInterface {
 
     /**
-     * @param SignalEvent $event
+     * @param SignalToday $event
      * @param $next
      * @return mixed
      * @throws SpamDetectedException
      */
-    public function handle(SignalEvent $event, $next)
+    public function handle(SignalToday $event, $next)
     {
         $agent = new Agent();
 

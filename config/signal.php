@@ -4,7 +4,7 @@ return [
 
     'signal_db' => [
         'driver' => 'sqlite',
-        'database' => env('SIGNAL_DB_DATABASE', database_path('signal.sqlite')),
+        'database' => env('SIGNAL_DB_DATABASE', database_path('signal/signal.sqlite')),
         'journal_mode' => 'wal',
         'prefix' => '',
         'foreign_key_constraints' => true,
@@ -16,6 +16,7 @@ return [
         'events' => 'events',
         'ip' => 'ip_addresses',
         'blacklist' => 'blacklist',
+        'today' => 'today'
     ],
 
     /*
@@ -51,6 +52,28 @@ return [
     |
     */
     'track_logged_in_users' => env('SIGNAL_TRACK_LOGGED_IN_USERS', true),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Track in Debug Mode
+    |--------------------------------------------------------------------------
+    |
+    | Usually people don't want to use Signal outside of production.
+    |
+    */
+    'track_in_debug_mode' => env('SIGNAL_TRACK_IN_DEBUG_MODE', false),
+
+     /*
+    |--------------------------------------------------------------------------
+    | Data Movement Frequency
+    |--------------------------------------------------------------------------
+    |
+    | We temporarily store data in the "today" table until it's ready to
+    | move into the "events" table. This is because "events" has a lot
+    | of indexes, which can slow down writing a lot.
+    |
+    */
+    'data_movement_frequency' => env('SIGNAL_DATA_MOVEMENT_FREQUENCY', 'everyThirtyMinutes'),
 
     /*
     |--------------------------------------------------------------------------

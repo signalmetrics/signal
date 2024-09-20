@@ -6,7 +6,6 @@ use Carbon\Carbon;
 use Illuminate\Routing\Controller;
 use Signalmetrics\Signal\Actions\Ingestion\CreateHashes;
 use Signalmetrics\Signal\Actions\Ingestion\DetectCountry;
-use Signalmetrics\Signal\Actions\Ingestion\DetectCrawler;
 use Signalmetrics\Signal\Actions\Ingestion\DetectSpam;
 use Signalmetrics\Signal\Actions\Ingestion\DetectUserAgent;
 use Signalmetrics\Signal\Actions\Ingestion\GetIP;
@@ -14,11 +13,11 @@ use Signalmetrics\Signal\Actions\Ingestion\PersistEvent;
 use Signalmetrics\Signal\Actions\Ingestion\RemovePersonalDetails;
 use Signalmetrics\Signal\Actions\Ingestion\StoreDuration;
 use Signalmetrics\Signal\Drawer\Pipeline;
-use Signalmetrics\Signal\Models\SignalEvent;
+use Signalmetrics\Signal\Models\SignalToday;
 
 class IngestionController extends Controller {
 
-    public function store(): SignalEvent
+    public function store(): SignalToday
     {
         $event = $this->initializeEvent();
 
@@ -34,7 +33,7 @@ class IngestionController extends Controller {
      * same metadata for consistency. This metadata mostly comes from
      * the frontend, but some is determined by the server.
      */
-    public function initializeEvent(): SignalEvent
+    public function initializeEvent(): SignalToday
     {
         /**
          * POST comes from beacon, and is stored as json data.
@@ -65,7 +64,7 @@ class IngestionController extends Controller {
 
         $parsedUrl = parse_url($metadata['url']);
 
-        return new SignalEvent([
+        return new SignalToday([
             'visit_signature' => $metadata['visit_signature'],
             'type' => $type,
             'custom_user_id' => $metadata['custom_user_id'] ?? null,
@@ -93,7 +92,7 @@ class IngestionController extends Controller {
     /**
      * Process page_view events.
      */
-    protected function processPageView(SignalEvent $event): SignalEvent
+    protected function processPageView(SignalToday $event): SignalToday
     {
         return Pipeline::send($event)
             ->through([
@@ -119,7 +118,7 @@ class IngestionController extends Controller {
      *
      * I think the only thing we need to do for this is store duration.
      */
-    protected function processPageUnload(SignalEvent $event): SignalEvent
+    protected function processPageUnload(SignalToday $event): SignalToday
     {
         return Pipeline::send($event)
             ->through([
@@ -128,26 +127,27 @@ class IngestionController extends Controller {
             ->thenReturn();
     }
 
-    protected function processEvent(SignalEvent $event): SignalEvent
+    protected function processEvent(SignalToday $event): SignalToday
     {
-        return Pipeline::send($event)
-            ->through([
-                GetIP::class,
-                DetectCrawler::class,
-                DetectSpam::class,
-                CreateHashes::class,
-
-                // Get Country
-                // Get mobile vs desktop
-                // Get unique
-
-                // Clear IP when in Privacy Mode
-                RemovePersonalDetails::class,
-
-                // Save the event
-                PersistEvent::class
-            ])
-            ->thenReturn();
+        throw new \Exception("Events are not set up yet.");
+//        return Pipeline::send($event)
+//            ->through([
+//                GetIP::class,
+//                DetectCrawler::class,
+//                DetectSpam::class,
+//                CreateHashes::class,
+//
+//                // Get Country
+//                // Get mobile vs desktop
+//                // Get unique
+//
+//                // Clear IP when in Privacy Mode
+//                RemovePersonalDetails::class,
+//
+//                // Save the event
+//                PersistEvent::class
+//            ])
+//            ->thenReturn();
     }
 
 

@@ -6,6 +6,7 @@ use GeoIp2\Database\Reader;
 use MaxMind\Db\Reader\InvalidDatabaseException;
 use Signalmetrics\Signal\Drawer\PipeInterface;
 use Signalmetrics\Signal\Models\SignalEvent;
+use Signalmetrics\Signal\Models\SignalToday;
 
 class DetectCountry implements PipeInterface {
 
@@ -20,7 +21,7 @@ class DetectCountry implements PipeInterface {
         $this->reader = new Reader($location_database_path);
     }
 
-    public function handle(SignalEvent $event, $next)
+    public function handle(SignalToday $event, $next)
     {
 
         try {

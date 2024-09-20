@@ -4,10 +4,11 @@ namespace Signalmetrics\Signal\Actions\Ingestion;
 
 use Signalmetrics\Signal\Drawer\PipeInterface;
 use Signalmetrics\Signal\Models\SignalEvent;
+use Signalmetrics\Signal\Models\SignalToday;
 
 class RemovePersonalDetails implements PipeInterface {
 
-    public function handle(SignalEvent $event, $next)
+    public function handle(SignalToday $event, $next)
     {
         if (config('signal.privacy_mode')) {
             $event->ip = null;

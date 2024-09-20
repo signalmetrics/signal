@@ -18,11 +18,14 @@
     "require": {
         "php": "^8.1|^8.2|^8.3",
         "ext-pdo": "*",
+        "anourvalar/eloquent-serialize": "^1.2",
         "geoip2/geoip2": "~2.0",
         "glhd/bits": "^0.5.0",
         "illuminate/contracts": "^9.0|^10.0|^11.0",
         "jaybizzle/crawler-detect": "^1.2",
-        "jenssegers/agent": "^2.6"
+        "jenssegers/agent": "^2.6",
+        "livewire/livewire": "^3.5",
+        "spatie/async": "^1.6"
     },
     "require-dev": {
         "orchestra/testbench": "^8.0",
