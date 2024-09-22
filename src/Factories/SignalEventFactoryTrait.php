@@ -65,8 +65,8 @@ trait SignalEventFactoryTrait {
             'type' => 'page_view',
             'custom_user_id' => $this->faker->randomElement([null, $this->faker->randomNumber()]),
             'title' => $random_page_visited['title'],
-            'user_agent' => null, // right now we're just not filling it out.
-            'ip' => null, // right now we're just not filling it out.
+            'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)', // right now we're just not filling it out.
+            'ip' => '74.115.209.58', // right now we're just not filling it out.
             'user_hash' => $user_hash,
 //            'page_view_hash' => $random_page_visited['page_view_hash'], // turned off because I'm not sure if we need it.
             'duration' => $this->faker->randomElement([null, $this->faker->numberBetween(0, 180)]),
@@ -83,6 +83,10 @@ trait SignalEventFactoryTrait {
 
             'created_at' => $random_date['date'],
             'updated_at' => $random_date['date'],
+
+            // not part of the model, just used for testing.
+            'dispatch_moment' => $random_date['date']->timestamp,
+            'url' => 'https://example.com/about'
         ];
     }
 

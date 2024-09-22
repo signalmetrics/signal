@@ -19,6 +19,7 @@ class IngestionController extends Controller {
 
     public function store(): SignalToday
     {
+
         $event = $this->initializeEvent();
 
         return match ($event->type) {
@@ -35,6 +36,7 @@ class IngestionController extends Controller {
      */
     public function initializeEvent(): SignalToday
     {
+
         /**
          * POST comes from beacon, and is stored as json data.
          * GET comes from pageview, and is stored differently.
@@ -60,6 +62,7 @@ class IngestionController extends Controller {
          * moment the event was fired in the frontend. This is useful since we
          * may be queuing events for quite a long time.
          */
+
         $timestampMilliseconds = substr($metadata['dispatch_moment'], 0, 13);
 
         $parsedUrl = parse_url($metadata['url']);

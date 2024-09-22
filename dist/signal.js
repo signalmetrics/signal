@@ -2,7 +2,7 @@ const signal = (() => {
 
     // Get the current script tag and check for data-endpoint attribute
     const currentScript = document.currentScript || document.querySelector('script[data-endpoint]');
-    const defaultEndpoint = '/analytics/event';
+        const defaultEndpoint = '/analytics/event';
     const endpoint = currentScript ? currentScript.getAttribute('data-endpoint') || defaultEndpoint : defaultEndpoint;
 
     // Global variable to hold visit_signature

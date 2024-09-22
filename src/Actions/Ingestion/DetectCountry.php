@@ -17,7 +17,7 @@ class DetectCountry implements PipeInterface {
      */
     public function __construct()
     {
-        $location_database_path = base_path('vendor/signalmetrics/signal/database/locations.mmdb');
+        $location_database_path = base_path('vendor/signalmetrics/signal/ip_service/locations.mmdb');
         $this->reader = new Reader($location_database_path);
     }
 
@@ -32,7 +32,7 @@ class DetectCountry implements PipeInterface {
 
         if (isset($record)) {
             $event->country_code = $record->country->isoCode;
-            $event->city = $record->city;
+            $event->city = $record->city->name;
         }
 
         return $next($event);
