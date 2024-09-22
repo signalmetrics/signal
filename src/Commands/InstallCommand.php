@@ -8,7 +8,7 @@ use PDO;
 
 class InstallCommand extends Command {
 
-    public $signature = 'signal:install';
+    public $signature = 'signal:install {--fast : Skip the intro}';
 
     public $description = 'Install Signal';
 
@@ -16,7 +16,9 @@ class InstallCommand extends Command {
     public function handle(): int
     {
 
-        $this->intro();
+        if (!$this->option('fast')) {
+            $this->intro();
+        }
 
         $this->publishVendorFiles();
 
@@ -35,34 +37,22 @@ class InstallCommand extends Command {
 
     protected function intro()
     {
-        $this->slowInfo('Thanks for trying out');
+
         $this->slowInfo('↓↓↓↓↓');
         $this->slowInfo('↓↓↓');
         $this->slowInfo('↓');
         $this->slowInfo('');
-        $this->slowInfo(' Signal', 'warn');
-        $this->slowInfo('');
 
-        $this->slowInfo('     ╬═╬     ');
-        $this->slowInfo('     ╬═╬     ');
-        $this->slowInfo('     ╬═╬  ☻/ ');
-        $this->slowInfo('     ╬═╬ /▌  ');
-        $this->slowInfo('    ╬═╬ / \\');
-        $this->slowInfo('');
-        $this->slowInfo('The free, self hosted');
-        $this->slowInfo('analytics platform');
+        $this->slowInfo('Thanks for using Signal!');
+        $this->slowInfo('---');
+        $this->slowInfo('The free');
+        $this->slowInfo('analytics tracker');
         $this->slowInfo('for Laravel apps.');
-        $this->slowInfo('');
-        $this->slowInfo('');
 
-        sleep(0.5);
         $this->slowInfo('');
-        $this->slowInfo('Installation starts in...');
         $this->slowInfo('');
-        $this->slowInfo('3');
-        $this->slowInfo('2');
-        $this->slowInfo('1');
-        sleep(1);
+        sleep(2);
+
     }
 
     public function slowInfo($text, $type = 'info')
@@ -70,6 +60,7 @@ class InstallCommand extends Command {
         // center the text.
         $length = str($text)->length();
         $padding = round((32 - $length) / 2, 0);
+
 
         usleep(220000);
 
@@ -100,46 +91,52 @@ class InstallCommand extends Command {
         $ignore_file = base_path('.gitignore');
         file_put_contents(
             $ignore_file,
-            PHP_EOL . '/database/signal.sqlite',
+            PHP_EOL . '/database/signal/signal.sqlite',
             FILE_APPEND
         );
     }
 
     protected function setupDatabase(): void
     {
-
         $db_file = config('signal.signal_db.database');
 
+        // Get the directory path (without the filename)
+        $db_directory = dirname($db_file);
+
+        // Check if the directory exists
+        if (!File::exists($db_directory)) {
+            $this->comment('Creating database/signal directory...');
+
+            // Create the directory with appropriate permissions
+            File::makeDirectory($db_directory, 0755, true);
+        }
+
         if (file_exists($db_file)) {
-            $this->comment("Database already exists. Skipping database setup.");
+            $this->comment("Signal database already exists.");
             return;
         }
 
-        $this->comment('Making database...');
+        $this->comment('Making a SQLite database to store analytics data...');
 
+        // Create the SQLite database file
         File::put($db_file, '');
 
         // Connect to the SQLite database and execute the PRAGMA command
         $pdo = new PDO('sqlite:' . $db_file);
         $pdo->exec('PRAGMA journal_mode = WAL;');
-        $this->comment('WAL mode enabled for Signal.');
 
-        // reloads the .env file
-//            $this->line('Reloading .env file...');
-//            $this->call('config:cache');
-//            $this->call('config:clear');
+        // Disable synchronous mode
+        $pdo->exec('PRAGMA synchronous = NORMAL;');
+
+        $this->comment('WAL mode enabled and Synchronous mode disabled for Signal.');
     }
 
     /**
-     * This runs migrations specifically for
+     * This runs migrations for Signal.
      */
     protected function migrate(): void
     {
-        $this->comment('Doing an initial migration...');
-        $packageMigrationPath = 'vendor/signalmetrics/signal/database/migrations';
-
-        passthru('php artisan migrate --database=signal --path=' . $packageMigrationPath);
-
+        $this->call('signal:migrate');
     }
 
 }

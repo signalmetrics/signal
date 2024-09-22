@@ -2,21 +2,47 @@
 
 namespace Signalmetrics\Signal;
 
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Signalmetrics\Signal\Commands\InstallCommand;
+use Signalmetrics\Signal\Commands\MigrateSignalCommand;
+use Signalmetrics\Signal\Commands\MoveDataToEventsCommand;
+use Signalmetrics\Signal\Mechanisms\FrontendAssets;
+use Signalmetrics\Signal\Middleware\SignalThrottle;
 
 class SignalServiceProvider extends ServiceProvider {
 
     /**
      * Bootstrap the application services.
      */
-    public function boot()
+    public function boot(Router $router)
     {
+        /**
+         * Custom middleware to set max requests sent to Signal.
+         */
+        RateLimiter::for('signal.throttle', function (Request $request) {
+            $limit = config('signal.max_attempts_per_minute');
+            return Limit::perMinute($limit)->by(request()->ip());
+        });
+
         /**
          * Load the SQLite Databae
          */
         config(['database.connections.signal' => config('signal.signal_db')]);
 
+        // Publish assets for the Signal package
+        $this->publishes(
+            [
+                __DIR__ . '/../../../dist' => public_path('vendor/signal'),
+            ],
+            'signal:assets'
+        );
+
+        app(FrontendAssets::class)->boot();
 
         /*
          * Optional methods to load your package assets
@@ -48,9 +74,21 @@ class SignalServiceProvider extends ServiceProvider {
 
             // Registering package commands.
             $this->commands([
-                InstallCommand::class
+                InstallCommand::class,
+                MigrateSignalCommand::class,
+                MoveDataToEventsCommand::class
             ]);
+
+            // Hook into the scheduler and schedule the command to run at the desired interval
+            $this->callAfterResolving(Schedule::class, function (Schedule $schedule) {
+
+                $frequency = config('signal.data_movement_frequency', 'everyThirtyMinutes');
+
+                $schedule->command('signal:move-data-to-events')->$frequency();
+            });
+
         }
+
     }
 
     /**
@@ -58,6 +96,8 @@ class SignalServiceProvider extends ServiceProvider {
      */
     public function register()
     {
+
+
         // Automatically apply the package configuration
         $this->mergeConfigFrom(__DIR__ . '/../config/signal.php', 'signal');
 
@@ -65,6 +105,11 @@ class SignalServiceProvider extends ServiceProvider {
         $this->app->singleton('signal', function () {
             return new Signal;
         });
+
+        app(FrontendAssets::class)->register();
+
+        // Register the SignalFrontendAssets class
+//        $this->app->singleton(FrontendAssets::class);
     }
 
 }
